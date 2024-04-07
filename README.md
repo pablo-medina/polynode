@@ -10,6 +10,16 @@ Por defecto, esta ubicación es c:\polynode, pero puede modificarse cambiando la
 Para el correcto funcionamiento de esta herramienta, debe configurarse manualmente la variable de entorno PATH, para que incluya el directorio %POLYNODE_PATH%\current.
 Si por algún motivo no se puede acceder a la configuración de variables de entorno de Windows, se puede utilizar el comando ***setenv.cmd*** creado al ejecutar ```polynode init```.
 
+## Proxy
+En caso de necesitar indicar la configuración del proxy, se debe crear el archivo ***proxy.json** en el espacio de trabajo (por ejemplo: c:\polynode\proxy.json) con esta estructura:
+
+```json
+{
+    "http_proxy": "http://<url>:<puerto>"
+}
+```
+De esta manera, se va tomar la URL de proxy indicada en el archivo antes mencionado.
+
 # Comandos
 
 | Comando                          | Descripción                                               |

@@ -2,9 +2,11 @@ package main
 
 import (
 	"archive/zip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,9 +20,15 @@ type version struct {
 	Patch int
 }
 
+type ProxyConfig struct {
+	HTTPProxy  string `json:"http_proxy,omitempty"`
+	HTTPSProxy string `json:"https_proxy,omitempty"`
+}
+
 const nodeURLTemplate = "https://nodejs.org/dist/v%s/node-v%s-%s-x64.zip"
 
 var installPath string
+var httpClient *http.Client
 
 func init() {
 	installPath = os.Getenv("POLYNODE_PATH")
@@ -91,6 +99,40 @@ func main() {
 	}
 }
 
+func buildHttpClient() *http.Client {
+	proxyConfigFile := filepath.Join(installPath, "proxy.json")
+
+	// Leer la configuración del proxy desde el archivo proxy.json si existe
+	proxyConfig := ProxyConfig{}
+	if _, err := os.Stat(proxyConfigFile); err == nil {
+		file, err := os.Open(proxyConfigFile)
+		if err != nil {
+			fmt.Println("Error al abrir el archivo proxy.json:", err)
+			return nil
+		}
+		defer file.Close()
+
+		decoder := json.NewDecoder(file)
+		if err := decoder.Decode(&proxyConfig); err != nil {
+			fmt.Println("Error al decodificar el archivo proxy.json:", err)
+			return nil
+		}
+	}
+
+	// Configurar el cliente HTTP con el proxy si está definido
+	if proxyConfig.HTTPProxy != "" {
+		proxy := func(_ *http.Request) (*url.URL, error) {
+			return url.Parse(proxyConfig.HTTPProxy)
+		}
+		transport := &http.Transport{Proxy: proxy}
+		httpClient = &http.Client{Transport: transport}
+	} else {
+		httpClient = http.DefaultClient
+	}
+
+	return httpClient
+}
+
 func initPolyNode() error {
 	setenvPath := filepath.Join(installPath, "setenv.cmd")
 
@@ -111,8 +153,20 @@ func initPolyNode() error {
 }
 
 func installNode(version string) error {
+
+	client := buildHttpClient()
+	if client == nil {
+		return fmt.Errorf("No se pudo procesar la configuración del proxy")
+	}
+
 	zipURL := fmt.Sprintf(nodeURLTemplate, version, version, getOS())
-	resp, err := http.Get(zipURL)
+
+	req, err := http.NewRequest("GET", zipURL, nil)
+	if err != nil {
+		return fmt.Errorf("Error al crear la solicitud HTTP:", err)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error al obtener el archivo ZIP: %v", err)
 	}
