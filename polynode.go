@@ -231,6 +231,18 @@ func useNode(version string) error {
 		return fmt.Errorf("La versión especificada de Node no está instalada: %s", version)
 	}
 
+	// Leer la versión actualmente seleccionada desde el archivo version.info
+	currentVersionFile := filepath.Join(currentPath, "version.info")
+	currentVersion, err := os.ReadFile(currentVersionFile)
+	if err != nil {
+		return fmt.Errorf("Error al leer la versión actual: %w", err)
+	}
+
+	// Comprobar si la versión solicitada es la misma que la actual
+	if string(currentVersion) == version {
+		return fmt.Errorf("La versión %s ya está seleccionada", version)
+	}
+
 	// Mover la versión anterior si es necesario
 	err = movePrevious(version, currentPath)
 	if err != nil {
