@@ -29,6 +29,7 @@ const nodeURLTemplate = "https://nodejs.org/dist/v%s/node-v%s-%s-x64.zip"
 
 var installPath string
 var currentPath string
+var repositoryPath string
 var httpClient *http.Client
 
 func init() {
@@ -37,11 +38,21 @@ func init() {
 		installPath = "C:\\polynode"
 	}
 	currentPath = filepath.Join(installPath, "current")
+	repositoryPath = filepath.Join(installPath, "repository")
 
 	// Verificar si la carpeta de instalación ya existe
 	if _, err := os.Stat(installPath); os.IsNotExist(err) {
 		// La carpeta no existe, crearla
 		if err := os.MkdirAll(installPath, 0755); err != nil {
+			fmt.Printf("Error al crear la carpeta de instalación: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	// Verificar si la carpeta de repositorio ya existe
+	if _, err := os.Stat(repositoryPath); os.IsNotExist(err) {
+		// La carpeta no existe, crearla
+		if err := os.MkdirAll(repositoryPath, 0755); err != nil {
 			fmt.Printf("Error al crear la carpeta de instalación: %v\n", err)
 			os.Exit(1)
 		}
@@ -190,12 +201,12 @@ func installNode(version string) error {
 	}
 
 	// Crear el directorio de instalación si no existe
-	err = os.MkdirAll(installPath, os.ModePerm)
+	err = os.MkdirAll(repositoryPath, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("Error al crear el directorio de instalación: %v", err)
 	}
 
-	zipFileName := filepath.Join(installPath, fmt.Sprintf("node-v%s-%s-x64.zip", version, getOS()))
+	zipFileName := filepath.Join(repositoryPath, fmt.Sprintf("node-v%s-%s-x64.zip", version, getOS()))
 
 	// Guardar el archivo ZIP
 	outFile, err := os.Create(zipFileName)
@@ -210,7 +221,7 @@ func installNode(version string) error {
 	}
 
 	// Extraer el archivo ZIP
-	err = unzip(zipFileName, installPath)
+	err = unzip(zipFileName, repositoryPath)
 	if err != nil {
 		return fmt.Errorf("Error al extraer el archivo ZIP: %v", err)
 	}
@@ -219,7 +230,7 @@ func installNode(version string) error {
 	outFile.Close()
 
 	// Crear un archivo version.info
-	versionInfoPath := filepath.Join(installPath, fmt.Sprintf("node-v%s-win-x64", version), "version.info")
+	versionInfoPath := filepath.Join(repositoryPath, fmt.Sprintf("node-v%s-win-x64", version), "version.info")
 	err = os.WriteFile(versionInfoPath, []byte(version), 0644)
 	if err != nil {
 		return fmt.Errorf("Error al crear el archivo version.info: %v", err)
@@ -235,7 +246,7 @@ func installNode(version string) error {
 }
 
 func useNode(version string) error {
-	versionPath := filepath.Join(installPath, fmt.Sprintf("node-v%s-win-x64", version))
+	versionPath := filepath.Join(repositoryPath, fmt.Sprintf("node-v%s-win-x64", version))
 
 	// Verificar si la carpeta de la versión de Node existe
 	_, err := os.Stat(versionPath)
@@ -308,7 +319,7 @@ func versionCommand() {
 }
 
 func uninstallVersionCommand(version string) error {
-	versionDir := filepath.Join(installPath, "node-v"+version+"-win-x64")
+	versionDir := filepath.Join(repositoryPath, "node-v"+version+"-win-x64")
 	currentPath := filepath.Join(installPath, "current")
 
 	// Verificar si la versión que se intenta desinstalar está instalada
@@ -436,7 +447,7 @@ func movePrevious(version string) error {
 	// Verificar si la versión actual es diferente
 	if currentVersion != version {
 		// Eliminar la carpeta de la versión anterior si existe
-		previousPath := filepath.Join(installPath, fmt.Sprintf("node-v%s-win-x64", currentVersion))
+		previousPath := filepath.Join(repositoryPath, fmt.Sprintf("node-v%s-win-x64", currentVersion))
 		if _, err := os.Stat(previousPath); !os.IsNotExist(err) {
 			os.RemoveAll(previousPath)
 		}
@@ -531,7 +542,7 @@ func compareVersions(v1, v2 version) int {
 
 func listInstalledVersions() ([]string, error) {
 	// Obtener una lista de todos los directorios dentro de la carpeta de instalación
-	files, err := os.ReadDir(installPath)
+	files, err := os.ReadDir(repositoryPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error al leer la carpeta de instalación: %v", err)
 	}
