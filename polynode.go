@@ -28,6 +28,7 @@ type ProxyConfig struct {
 const nodeURLTemplate = "https://nodejs.org/dist/v%s/node-v%s-%s-x64.zip"
 
 var installPath string
+var currentPath string
 var httpClient *http.Client
 
 func init() {
@@ -35,6 +36,7 @@ func init() {
 	if installPath == "" {
 		installPath = "C:\\polynode"
 	}
+	currentPath = filepath.Join(installPath, "current")
 
 	// Verificar si la carpeta de instalación ya existe
 	if _, err := os.Stat(installPath); os.IsNotExist(err) {
@@ -223,7 +225,6 @@ func installNode(version string) error {
 
 func useNode(version string) error {
 	versionPath := filepath.Join(installPath, fmt.Sprintf("node-v%s-win-x64", version))
-	currentPath := filepath.Join(installPath, "current")
 
 	// Verificar si la carpeta de la versión de Node existe
 	_, err := os.Stat(versionPath)
@@ -232,19 +233,15 @@ func useNode(version string) error {
 	}
 
 	// Leer la versión actualmente seleccionada desde el archivo version.info
-	currentVersionFile := filepath.Join(currentPath, "version.info")
-	currentVersion, err := os.ReadFile(currentVersionFile)
-	if err != nil {
-		return fmt.Errorf("Error al leer la versión actual: %w", err)
-	}
+	currentVersion := getCurrentVersion()
 
 	// Comprobar si la versión solicitada es la misma que la actual
-	if string(currentVersion) == version {
+	if currentVersion == version {
 		return fmt.Errorf("La versión %s ya está seleccionada", version)
 	}
 
 	// Mover la versión anterior si es necesario
-	err = movePrevious(version, currentPath)
+	err = movePrevious(version)
 	if err != nil {
 		return fmt.Errorf("Error al mover la versión anterior: %v", err)
 	}
@@ -275,16 +272,24 @@ func listInstalledVersionsCommand() {
 		return
 	}
 
+	currentVersion := getCurrentVersion()
+
 	fmt.Println("Versiones instaladas:")
 	for _, version := range versions {
-		fmt.Println("  -", version)
+		versionLine := ""
+		if version == currentVersion {
+			versionLine = fmt.Sprintf(" - [%s] <- ACTUAL", version)
+		} else {
+			versionLine = fmt.Sprintf(" - %s", version)
+		}
+		fmt.Println(versionLine)
 	}
 }
 
 func versionCommand() {
-	currentVersion, err := getCurrentVersion()
-	if err != nil {
-		fmt.Println(err)
+	currentVersion := getCurrentVersion()
+	if currentVersion == "" {
+		fmt.Println("No hay ninguna versión seleccionada. Utilice el comando polynode use <version>.")
 		return
 	}
 
@@ -351,22 +356,33 @@ func copyFile(src, dst string) error {
 	return nil
 }
 
-func getCurrentVersion() (string, error) {
-	versionFilePath := filepath.Join(installPath, "current", "version.info")
-
-	// Leer el contenido del archivo version.info
-	versionBytes, err := os.ReadFile(versionFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", fmt.Errorf("No hay una versión seleccionada")
-		}
-		return "", fmt.Errorf("Error al leer el archivo version.info: %v", err)
+func getCurrentVersion() string {
+	// Verificar si el directorio current existe
+	_, err := os.Stat(currentPath)
+	if err != nil && os.IsNotExist(err) {
+		return ""
 	}
 
-	return strings.TrimSpace(string(versionBytes)), nil
+	// Obtener la ruta del archivo version.info
+	versionFile := filepath.Join(currentPath, "version.info")
+
+	// Verificar si el archivo version.info existe
+	_, err = os.Stat(versionFile)
+	if err != nil && os.IsNotExist(err) {
+		return ""
+	}
+
+	// Leer el contenido del archivo version.info
+	versionBytes, err := os.ReadFile(versionFile)
+	if err != nil {
+		fmt.Println("Error al leer la versión actual:", err)
+		return ""
+	}
+
+	return strings.TrimSpace(string(versionBytes))
 }
 
-func movePrevious(version string, currentPath string) error {
+func movePrevious(version string) error {
 	// Leer el archivo version.info dentro de current
 	currentVersionFile := filepath.Join(currentPath, "version.info")
 	currentVersionBytes, err := os.ReadFile(currentVersionFile)
