@@ -33,4 +33,4 @@ De esta manera, se va tomar la URL de proxy indicada en el archivo antes mencion
 | polynode list                    | Lista las versiones de node disponibles localmente           |
 | polynode version                 | Muestra la versión de Node utilizada actualmente             |
 | polynode uninstall               | Desinstala la versión de Node indicada del repositorio local |
-
+| polynode proxy <url>             | Definir la URL del proxy                                     |
