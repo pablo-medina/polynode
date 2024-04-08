@@ -96,8 +96,19 @@ func main() {
 	case "version":
 		versionCommand()
 
+	case "uninstall":
+		if len(os.Args) < 3 {
+			fmt.Println("Uso: polynode uninstall <version>")
+			return
+		}
+		version := os.Args[2]
+		if err := uninstallVersionCommand(version); err != nil {
+			fmt.Println("Error al desinstalar la versión:", err)
+			return
+		}
+
 	default:
-		fmt.Println("Uso: polynode <init|install|use|list|version> [version]")
+		fmt.Println("Uso: polynode <init|install|use|list|version|uninstall> [version]")
 	}
 }
 
@@ -294,6 +305,33 @@ func versionCommand() {
 	}
 
 	fmt.Println("Versión seleccionada:", currentVersion)
+}
+
+func uninstallVersionCommand(version string) error {
+	versionDir := filepath.Join(installPath, "node-v"+version+"-win-x64")
+	currentPath := filepath.Join(installPath, "current")
+
+	// Verificar si la versión que se intenta desinstalar está instalada
+	if _, err := os.Stat(versionDir); os.IsNotExist(err) {
+		return fmt.Errorf("La versión %s no está instalada", version)
+	}
+
+	// Eliminar el directorio de la versión
+	if err := os.RemoveAll(versionDir); err != nil {
+		return fmt.Errorf("Error al desinstalar la versión %s: %w", version, err)
+	}
+
+	// Si la versión desinstalada es la misma que la actual, borrar el directorio "current"
+	currentVersion := getCurrentVersion()
+	if currentVersion == version {
+		if err := os.RemoveAll(currentPath); err != nil {
+			return fmt.Errorf("Error al desinstalar la versión actual: %w", err)
+		}
+		fmt.Println("La versión actual ha sido desinstalada. Por favor, selecciona una nueva versión usando 'use'")
+	}
+
+	fmt.Printf("La versión %s ha sido desinstalada correctamente\n", version)
+	return nil
 }
 
 func copyDir(src, dst string) error {
