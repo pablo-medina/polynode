@@ -61,7 +61,7 @@ func init() {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Uso: polynode <init|install|use|list|version> [version]")
+		fmt.Println("Uso: polynode <init|install|use|list|version|uninstall|proxy> [version]")
 		return
 	}
 
@@ -118,8 +118,21 @@ func main() {
 			return
 		}
 
+	case "proxy":
+		if len(os.Args) < 3 {
+			fmt.Println("Uso: polynode proxy <http_proxy>")
+			return
+		}
+
+		httpProxy := os.Args[2]
+
+		if err := setProxyCommand(httpProxy); err != nil {
+			fmt.Println("Error al configurar el proxy:", err)
+			return
+		}
+
 	default:
-		fmt.Println("Uso: polynode <init|install|use|list|version|uninstall> [version]")
+		fmt.Println("Uso: polynode <init|install|use|list|version|uninstall|proxy> [version]")
 	}
 }
 
@@ -342,6 +355,30 @@ func uninstallVersionCommand(version string) error {
 	}
 
 	fmt.Printf("La versión %s ha sido desinstalada correctamente\n", version)
+	return nil
+}
+
+func setProxyCommand(httpProxy string) error {
+	proxyConfigFile := filepath.Join(installPath, "proxy.json")
+
+	// Crear la configuración del proxy
+	proxyConfig := ProxyConfig{
+		HTTPProxy: httpProxy,
+	}
+
+	// Serializar la configuración del proxy a JSON
+	proxyJSON, err := json.MarshalIndent(proxyConfig, "", "    ")
+	if err != nil {
+		return fmt.Errorf("Error al serializar la configuración del proxy: %w", err)
+	}
+
+	// Escribir la configuración del proxy en el archivo proxy.json
+	err = os.WriteFile(proxyConfigFile, proxyJSON, 0644)
+	if err != nil {
+		return fmt.Errorf("Error al escribir la configuración del proxy en el archivo: %w", err)
+	}
+
+	fmt.Println("Configuración del proxy guardada correctamente en proxy.json")
 	return nil
 }
 
