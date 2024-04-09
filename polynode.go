@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"polynode/commands"
 	"polynode/shared"
 )
@@ -42,13 +41,6 @@ func main() {
 	command := os.Args[1]
 
 	switch command {
-	case "init":
-		err := initPolyNode()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println("Configuración inicial de Polynode completada")
 
 	case "check":
 		err := commands.CheckInstallation()
@@ -125,23 +117,4 @@ func main() {
 	default:
 		commands.ShowHelp()
 	}
-}
-
-func initPolyNode() error {
-	setenvPath := filepath.Join(shared.GetInstallPath(), "setenv.cmd")
-
-	// Crear el archivo setenv.cmd
-	f, err := os.Create(setenvPath)
-	if err != nil {
-		return fmt.Errorf("Error al crear el archivo setenv.cmd: %v", err)
-	}
-	defer f.Close()
-
-	// Escribir el contenido del archivo setenv.cmd
-	_, err = f.WriteString(fmt.Sprintf("@ECHO OFF\nset PATH=%s\\current;%%PATH%%\n", shared.GetInstallPath()))
-	if err != nil {
-		return fmt.Errorf("Error al escribir en el archivo setenv.cmd: %v", err)
-	}
-
-	return nil
 }

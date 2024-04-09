@@ -9,7 +9,6 @@ func ShowHelp() {
 	fmt.Println("")
 	fmt.Println("Comandos:")
 	fmt.Println("---------")
-	fmt.Println(" init                   Inicializar polynode")
 	fmt.Println(" install <version>      Instalar versión de node especificada en el repositorio local")
 	fmt.Println(" use <version>          Usar versión de node previamente instalada")
 	fmt.Println(" list                   Lista versiones de node instaladas en el repositorio local")
