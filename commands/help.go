@@ -7,6 +7,8 @@ import (
 func ShowHelp() {
 	fmt.Println("Uso: polynode <comando> [parámetros]")
 	fmt.Println("")
+	fmt.Println("Comandos:")
+	fmt.Println("---------")
 	fmt.Println(" init                   Inicializar polynode")
 	fmt.Println(" install <version>      Instalar versión de node especificada en el repositorio local")
 	fmt.Println(" use <version>          Usar versión de node previamente instalada")
