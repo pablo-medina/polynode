@@ -18,11 +18,11 @@ func UseNodeVersion(version string) error {
 	}
 
 	// Leer la versión actualmente seleccionada
-	currentVersion := shared.GetCurrentVersionPath()
+	currentVersion := shared.GetCurrentVersion()
 
 	// Comprobar si la versión solicitada es la misma que la actual
 	if currentVersion == version {
-		return fmt.Errorf("La versión %s ya está seleccionada", version)
+		return fmt.Errorf("La versión %s ya está seleccionada, no es necesario cambiar de versión", version)
 	}
 
 	// Mover la versión anterior si es necesario
