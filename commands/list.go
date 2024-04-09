@@ -17,11 +17,12 @@ func ExecuteList() {
 	}
 
 	if len(versions) == 0 {
-		fmt.Println("No se encontraron versiones instaladas.")
+		fmt.Println("No hay versiones de node instaladas en el repositorio local.")
+		fmt.Println("Utilice el comando poly install <version> para instalar una.")
 		return
 	}
 
-	currentVersion := shared.GetCurrentVersionPath()
+	currentVersion := shared.GetCurrentVersion()
 
 	fmt.Println("Versiones instaladas:")
 	for _, version := range versions {

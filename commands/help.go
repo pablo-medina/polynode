@@ -5,7 +5,7 @@ import (
 )
 
 func ShowHelp() {
-	fmt.Println("Uso: polynode <comando> [parámetros]")
+	fmt.Println("Uso: poly <comando> [parámetros]")
 	fmt.Println("")
 	fmt.Println("Comandos:")
 	fmt.Println("---------")

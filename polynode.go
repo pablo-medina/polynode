@@ -51,7 +51,7 @@ func main() {
 		fmt.Println("Configuración inicial de Polynode completada")
 	case "install":
 		if len(os.Args) < 3 {
-			fmt.Println("Uso: polynode install <version>")
+			fmt.Println("Uso: poly install <version>")
 			return
 		}
 		version := os.Args[2]
@@ -64,7 +64,7 @@ func main() {
 
 	case "use":
 		if len(os.Args) < 3 {
-			fmt.Println("Uso: polynode use <version>")
+			fmt.Println("Uso: poly use <version>")
 			return
 		}
 		version := os.Args[2]
@@ -83,7 +83,7 @@ func main() {
 
 	case "uninstall":
 		if len(os.Args) < 3 {
-			fmt.Println("Uso: polynode uninstall <version>")
+			fmt.Println("Uso: poly uninstall <version>")
 			return
 		}
 		version := os.Args[2]
@@ -94,7 +94,7 @@ func main() {
 
 	case "proxy":
 		if len(os.Args) < 3 {
-			fmt.Println("Uso: polynode proxy <http_proxy>")
+			fmt.Println("Uso: poly proxy <http_proxy>")
 			return
 		}
 
