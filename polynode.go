@@ -112,6 +112,12 @@ func main() {
 			return
 		}
 
+	case "backup":
+		if err := commands.BackupInstallation(); err != nil {
+			fmt.Println(err)
+			return
+		}
+
 	case "help":
 		commands.ShowHelp()
 		return

@@ -67,7 +67,7 @@ func CheckInstallation() error {
 			fmt.Printf("SET PATH=%s;%%PATH%%\n", currentPath)
 		} else {
 			fmt.Println("La primera ubicación del ejecutable de Node.js coincide con la ubicación esperada.")
-			fmt.Println("Se encontraron múltiples ubicaciones del ejecutable de Node.js. Se recomienda eliminar las ubicaciones adicionales del PATH para evitar conflictos.")
+			fmt.Println("Se encontraron múltiples ubicaciones del ejecutable de Node. Se recomienda eliminar las ubicaciones adicionales del PATH correspondientes a otras instalaciones de Node para evitar conflictos.")
 		}
 	}
 
