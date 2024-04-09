@@ -35,7 +35,7 @@ func init() {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Uso: polynode <init|install|use|list|version|uninstall|proxy> [version]")
+		commands.ShowHelp()
 		return
 	}
 
@@ -105,8 +105,12 @@ func main() {
 			return
 		}
 
+	case "help":
+		commands.ShowHelp()
+		return
+
 	default:
-		fmt.Println("Uso: polynode <init|install|use|list|version|uninstall|proxy> [version]")
+		commands.ShowHelp()
 	}
 }
 
