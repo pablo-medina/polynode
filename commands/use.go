@@ -23,12 +23,14 @@ func UseNodeVersion(version string) error {
 	// Comprobar si la versión solicitada es la misma que la actual
 	if currentVersion == version {
 		return fmt.Errorf("La versión %s ya está seleccionada, no es necesario cambiar de versión", version)
-	}
-
-	// Mover la versión anterior si es necesario
-	err = movePrevious(version)
-	if err != nil {
-		return fmt.Errorf("Error al mover la versión anterior: %v", err)
+	} else {
+		if currentVersion != "" {
+			// Mover la versión anterior si es necesario
+			err = movePrevious(version)
+			if err != nil {
+				return fmt.Errorf("Error al mover la versión anterior: %v", err)
+			}
+		}
 	}
 
 	// Eliminar el directorio actual si ya existe
@@ -49,7 +51,7 @@ func movePrevious(version string) error {
 	currentVersion := shared.GetCurrentVersion()
 
 	// Verificar si la versión actual es diferente
-	if currentVersion != version {
+	if version != "" && currentVersion != version {
 		// Eliminar la carpeta de la versión anterior si existe
 		previousPath := filepath.Join(shared.GetRepoPath(), fmt.Sprintf("node-v%s-win-x64", currentVersion))
 		if _, err := os.Stat(previousPath); !os.IsNotExist(err) {
