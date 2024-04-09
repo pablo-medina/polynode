@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"polynode/shared"
-	"strings"
 )
 
 func UseNodeVersion(version string) error {
@@ -18,7 +17,7 @@ func UseNodeVersion(version string) error {
 		return fmt.Errorf("La versión especificada de Node no está instalada: %s", version)
 	}
 
-	// Leer la versión actualmente seleccionada desde el archivo version.info
+	// Leer la versión actualmente seleccionada
 	currentVersion := shared.GetCurrentVersionPath()
 
 	// Comprobar si la versión solicitada es la misma que la actual
@@ -47,17 +46,7 @@ func UseNodeVersion(version string) error {
 }
 
 func movePrevious(version string) error {
-	// Leer el archivo version.info dentro de current
-	currentVersionFile := filepath.Join(shared.GetCurrentVersionPath(), "version.info")
-	currentVersionBytes, err := os.ReadFile(currentVersionFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// No hay una versión anterior, no es necesario hacer nada
-			return nil
-		}
-		return fmt.Errorf("Error al leer el archivo version.info en current: %v", err)
-	}
-	currentVersion := strings.TrimSpace(string(currentVersionBytes))
+	currentVersion := shared.GetCurrentVersion()
 
 	// Verificar si la versión actual es diferente
 	if currentVersion != version {

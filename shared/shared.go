@@ -3,6 +3,7 @@ package shared
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -70,27 +71,33 @@ func GetNodeVersionURL(version string) string {
 }
 
 func GetCurrentVersion() string {
-	// Verificar si el directorio current existe
+	// Verificar si el directorio "current" existe
 	_, err := os.Stat(currentVersionPath)
 	if err != nil && os.IsNotExist(err) {
 		return ""
 	}
 
-	// Obtener la ruta del archivo version.info
-	versionFile := filepath.Join(currentVersionPath, "version.info")
+	// Obtener la ruta completa del ejecutable de Node.js
+	nodeExec := filepath.Join(currentVersionPath, "node.exe")
 
-	// Verificar si el archivo version.info existe
-	_, err = os.Stat(versionFile)
+	// Verificar si el ejecutable de Node.js existe
+	_, err = os.Stat(nodeExec)
 	if err != nil && os.IsNotExist(err) {
 		return ""
 	}
 
-	// Leer el contenido del archivo version.info
-	versionBytes, err := os.ReadFile(versionFile)
+	// Ejecutar "node -v" para obtener la versión de Node.js
+	cmd := exec.Command(nodeExec, "-v")
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println("Error al leer la versión actual:", err)
+		fmt.Println("Error al obtener la versión de Node.js:", err)
 		return ""
 	}
 
-	return strings.TrimSpace(string(versionBytes))
+	// Extraer y formatear la versión de Node.js
+	version := strings.TrimSpace(string(output))
+	if strings.HasPrefix(version, "v") {
+		version = version[1:]
+	}
+	return version
 }

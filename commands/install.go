@@ -75,13 +75,6 @@ func InstallVersion(version string) error {
 	// Cerrar el archivo ZIP antes de intentar eliminarlo
 	outFile.Close()
 
-	// Crear un archivo version.info
-	versionInfoPath := filepath.Join(shared.GetRepoPath(), fmt.Sprintf("node-v%s-win-x64", version), "version.info")
-	err = os.WriteFile(versionInfoPath, []byte(version), 0644)
-	if err != nil {
-		return fmt.Errorf("Error al crear el archivo version.info: %v", err)
-	}
-
 	// Eliminar el archivo ZIP después de extraerlo
 	err = os.Remove(zipFileName)
 	if err != nil {

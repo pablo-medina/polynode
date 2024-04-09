@@ -16,6 +16,7 @@ func ShowHelp() {
 	fmt.Println(" version                Muestra la versión de Node seleccionada")
 	fmt.Println(" uninstall <version>    Eliminar del repositorio local la versión de node especificada")
 	fmt.Println(" proxy <url>            Utilizar la url de proxy indicada para la descarga de versiones de Node")
+	fmt.Println(" check                  Revisar configuración de la instalaciónd de polynode")
 	fmt.Println(" help                   Mostrar esta ayuda")
 	fmt.Println()
 }

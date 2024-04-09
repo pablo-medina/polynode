@@ -49,6 +49,13 @@ func main() {
 			return
 		}
 		fmt.Println("Configuración inicial de Polynode completada")
+
+	case "check":
+		err := commands.CheckInstallation()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	case "install":
 		if len(os.Args) < 3 {
 			fmt.Println("Uso: poly install <version>")
