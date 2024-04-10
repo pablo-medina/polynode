@@ -15,6 +15,11 @@ import (
 
 var httpClient *http.Client
 
+type IndexEntry struct {
+	Version string      `json:"version"`
+	Lts     interface{} `json:"lts"`
+}
+
 func getOS() string {
 	if strings.Contains(strings.ToLower(os.Getenv("OS")), "windows") {
 		return "win"
@@ -28,7 +33,18 @@ func InstallVersion(version string) error {
 		return fmt.Errorf("No se pudo procesar la configuración del proxy")
 	}
 
-	zipURL := shared.GetNodeVersionURL(version)
+	parsedVersion := version
+
+	if version == "lts" {
+		ltsVersion := getLatestLTSURL(client)
+		if ltsVersion == "" {
+			return fmt.Errorf("No se pudo obtener la versión LTS")
+		}
+		parsedVersion = ltsVersion
+		fmt.Printf("Versión LTS: %s\n", parsedVersion)
+	}
+
+	zipURL := shared.GetNodeVersionURL(parsedVersion)
 	fmt.Printf("Descargando archivo %s...\n", zipURL)
 
 	req, err := http.NewRequest("GET", zipURL, nil)
@@ -43,7 +59,7 @@ func InstallVersion(version string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("No se pudo encontrar la versión especificada: %s", version)
+		return fmt.Errorf("No se pudo encontrar la versión especificada: %s", parsedVersion)
 	}
 
 	// Crear el directorio de instalación si no existe
@@ -52,7 +68,7 @@ func InstallVersion(version string) error {
 		return fmt.Errorf("Error al crear el directorio de instalación: %v", err)
 	}
 
-	zipFileName := filepath.Join(shared.GetRepoPath(), fmt.Sprintf("node-v%s-%s-x64.zip", version, getOS()))
+	zipFileName := filepath.Join(shared.GetRepoPath(), fmt.Sprintf("node-v%s-%s-x64.zip", parsedVersion, getOS()))
 
 	// Guardar el archivo ZIP
 	outFile, err := os.Create(zipFileName)
@@ -80,6 +96,8 @@ func InstallVersion(version string) error {
 	if err != nil {
 		return fmt.Errorf("Error al eliminar el archivo ZIP: %v", err)
 	}
+
+	fmt.Printf("Node v%s instalado en %s\n", parsedVersion, shared.GetInstallPath())
 
 	return nil
 }
@@ -150,4 +168,60 @@ func unzip(src, dest string) error {
 		}
 	}
 	return nil
+}
+
+func getLatestLTSURL(client *http.Client) string {
+	baseURL := shared.GetNodeRepositoryBaseURL()
+	jsonDataURL := baseURL + "index.json"
+
+	req, err := http.NewRequest("GET", jsonDataURL, nil)
+	if err != nil {
+		fmt.Printf("Error al crear la solicitud HTTP: %s\n", err)
+		return ""
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error al realizar la solicitud HTTP para obtener información sobre las versiones disponibles: %v\n", err)
+		return ""
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Error al obtener información sobre las versiones dipsonibles.")
+		return ""
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error al leer el contenido del archivo index.json:", err)
+		return ""
+	}
+
+	var versions []IndexEntry
+	if err := json.Unmarshal(body, &versions); err != nil {
+		fmt.Println("Error al decodificar el contenido del archivo index.json:", err)
+		return ""
+	}
+
+	/*
+	 * El campo lts puede ser un boolean con el valor false o un string con un código de versión lts
+	 * Lo que hacemos es, recorrer el json, y devolver el primer elemento cuyo valor de "lts" sea un string.
+	 */
+	for _, entry := range versions {
+		ltsValue := "false"
+		switch lts := entry.Lts.(type) {
+		case bool:
+			if lts {
+				ltsValue = "true"
+			}
+		case string:
+			ltsValue = lts
+		}
+		if ltsValue != "false" {
+			return shared.NormalizeVersion(entry.Version)
+		}
+	}
+
+	return ""
 }

@@ -59,7 +59,6 @@ func main() {
 			fmt.Println(err)
 			return
 		}
-		fmt.Printf("Node v%s instalado en %s\n", version, shared.GetInstallPath())
 
 	case "use":
 		if len(os.Args) < 3 {

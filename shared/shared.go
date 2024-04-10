@@ -9,11 +9,12 @@ import (
 )
 
 const (
-	envAppPath             = "POLYNODE_PATH"
-	defaultInstallPath     = "C:\\polynode"
-	currentVersionPathName = "current"
-	repoPathName           = "repository"
-	nodeURLTemplate        = "https://nodejs.org/dist/v%s/node-v%s-%s-x64.zip"
+	envAppPath                  = "POLYNODE_PATH"
+	defaultInstallPath          = "C:\\polynode"
+	currentVersionPathName      = "current"
+	repoPathName                = "repository"
+	nodeRemoteRepositoryBaseURL = "https://nodejs.org/dist/"
+	nodeURLTemplate             = "%s/v%s/node-v%s-%s-x64.zip"
 )
 
 var (
@@ -66,8 +67,12 @@ func getOS() string {
 	return "linux"
 }
 
+func GetNodeRepositoryBaseURL() string {
+	return nodeRemoteRepositoryBaseURL
+}
+
 func GetNodeVersionURL(version string) string {
-	return fmt.Sprintf(nodeURLTemplate, version, version, getOS())
+	return fmt.Sprintf(nodeURLTemplate, nodeRemoteRepositoryBaseURL, version, version, getOS())
 }
 
 func GetCurrentVersion() string {
@@ -96,8 +101,13 @@ func GetCurrentVersion() string {
 
 	// Extraer y formatear la versión de Node.js
 	version := strings.TrimSpace(string(output))
+	return NormalizeVersion(version)
+}
+
+func NormalizeVersion(version string) string {
+	normalizedVersion := version
 	if strings.HasPrefix(version, "v") {
-		version = version[1:]
+		normalizedVersion = version[1:]
 	}
-	return version
+	return normalizedVersion
 }
