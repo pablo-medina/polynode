@@ -109,6 +109,12 @@ func main() {
 			return
 		}
 
+	case "shell":
+		if err := commands.OpenShell(); err != nil {
+			fmt.Println("Error al abrir el shell:", err)
+			return
+		}
+
 	case "help":
 		commands.ShowHelp()
 		return

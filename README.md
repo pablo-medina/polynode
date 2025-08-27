@@ -35,4 +35,5 @@ De esta manera, se va tomar la URL de proxy indicada en el archivo antes mencion
 | poly proxy <url>             | Definir la URL del proxy                                            |
 | poly check                   | Verifica la instalación de polynode                                 |
 | poly backup                  | Realiza una copia de seguridad de la instalación actual de polynode |
+| poly shell                   | Abre un shell con la versión actual de Node.js configurada en el PATH |
 | poly help                    | Mostrar ayuda de línea de comandos                                  |
