@@ -20,6 +20,54 @@ type IndexEntry struct {
 	Lts     interface{} `json:"lts"`
 }
 
+// ProgressReader es un wrapper para io.Reader que muestra progreso
+type ProgressReader struct {
+	Reader   io.Reader
+	Total    int64
+	Current  int64
+	FileName string
+}
+
+func (pr *ProgressReader) Read(p []byte) (n int, err error) {
+	n, err = pr.Reader.Read(p)
+	pr.Current += int64(n)
+	pr.showProgress()
+	return n, err
+}
+
+func (pr *ProgressReader) showProgress() {
+	if pr.Total <= 0 {
+		return
+	}
+
+	percentage := float64(pr.Current) / float64(pr.Total) * 100
+	barLength := 30
+	filledLength := int(float64(barLength) * percentage / 100)
+
+	bar := "["
+	for i := 0; i < barLength; i++ {
+		if i < filledLength {
+			bar += "="
+		} else if i == filledLength {
+			bar += ">"
+		} else {
+			bar += " "
+		}
+	}
+	bar += "]"
+
+	// Calcular tamaños en MB
+	currentMB := float64(pr.Current) / (1024 * 1024)
+	totalMB := float64(pr.Total) / (1024 * 1024)
+
+	// Limpiar línea anterior y mostrar progreso
+	fmt.Printf("\r%s %s %.1f%% (%.1f/%.1f MB)", pr.FileName, bar, percentage, currentMB, totalMB)
+
+	if pr.Current >= pr.Total {
+		fmt.Println() // Nueva línea al completar
+	}
+}
+
 func getOS() string {
 	if strings.Contains(strings.ToLower(os.Getenv("OS")), "windows") {
 		return "win"
@@ -70,17 +118,26 @@ func InstallVersion(version string) error {
 
 	zipFileName := filepath.Join(shared.GetRepoPath(), fmt.Sprintf("node-v%s-%s-x64.zip", parsedVersion, getOS()))
 
-	// Guardar el archivo ZIP
+	// Guardar el archivo ZIP con barra de progreso
 	outFile, err := os.Create(zipFileName)
 	if err != nil {
 		return fmt.Errorf("Error al crear el archivo ZIP: %v", err)
 	}
 	defer outFile.Close()
 
-	_, err = io.Copy(outFile, resp.Body)
+	// Crear el ProgressReader para mostrar el progreso
+	progressReader := &ProgressReader{
+		Reader:   resp.Body,
+		Total:    resp.ContentLength,
+		FileName: filepath.Base(zipFileName),
+	}
+
+	_, err = io.Copy(outFile, progressReader)
 	if err != nil {
 		return fmt.Errorf("Error al guardar el archivo ZIP: %v", err)
 	}
+
+	fmt.Println("Extrayendo archivos...")
 
 	// Extraer el archivo ZIP
 	err = unzip(zipFileName, shared.GetRepoPath())
